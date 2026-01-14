@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Amplify
+amplify/
+.amplify/
+amplify-backup/
+amplify-gradle-config.json
+
+# AWS
+.aws-sam/
+aws-exports.js
+amplifyconfiguration.json
+amplify_outputs.json

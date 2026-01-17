@@ -2,7 +2,6 @@
 
 import { authService } from "@/lib/auth/cognito-service";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import React from "react";
 
 export default function LoginForm() {
@@ -10,23 +9,14 @@ export default function LoginForm() {
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    console.log("=== SUBMIT START ===");
-    console.log("email state:", email);
-    console.log("password state length:", password.length);
-    console.log("===================");
 
     // Get values directly from the form (includes autofilled values)
     const formData = new FormData(e.currentTarget);
     const emailValue = formData.get("email") as string;
     const passwordValue = formData.get("password") as string;
-
-    console.log("emailValue from form:", emailValue);
-    console.log("passwordValue from form length:", passwordValue.length);
 
     if (!emailValue || !passwordValue) {
       setError("Please enter both email and password");
@@ -36,17 +26,8 @@ export default function LoginForm() {
     setError("");
     setLoading(true);
 
-    console.log(
-      "Attempting sign in with:",
-      emailValue,
-      passwordValue.length > 0 ? "[password entered]" : "[NO PASSWORD]"
-    );
-
     try {
       await authService.signIn(emailValue, passwordValue);
-      console.log("Sign in successful");
-      console.log("Attempting redirect to /dashboard");
-
       // Use window.location for guaranteed navigation
       window.location.href = "/dashboard";
     } catch (err: unknown) {
@@ -84,7 +65,6 @@ export default function LoginForm() {
             value={email}
             name="email"
             onChange={(e) => {
-              console.log("Email changed to:", e.target.value);
               setEmail(e.target.value);
             }}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -105,7 +85,6 @@ export default function LoginForm() {
             value={password}
             name="password"
             onChange={(e) => {
-              console.log("Password changed, length:", e.target.value.length);
               setPassword(e.target.value);
             }}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"

@@ -29,7 +29,7 @@ export const scryfallApi = {
     return scryfallApi.searchCards(`${query} is:commander legal:commander`);
   },
 
-  async autoComplete(query: string): Promise<string[]> {
+  async autocomplete(query: string): Promise<string[]> {
     await delay(100); // Simple rate limiting
 
     if (query.length < 2) return [];

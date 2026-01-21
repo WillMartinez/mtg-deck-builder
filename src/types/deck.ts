@@ -13,6 +13,8 @@ export interface DeckCard {
     | "planeswalker"
     | "land"
     | "other";
+  isLegal?: boolean;
+  isGameChanger?: boolean;
 }
 
 export interface Deck {

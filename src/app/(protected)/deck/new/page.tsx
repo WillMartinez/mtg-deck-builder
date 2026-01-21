@@ -1,8 +1,7 @@
 "use client";
 
-import CardDisplay from "@/components/deck/CardDisplay";
 import CardHoverPreview from "@/components/deck/CardHoverPreview";
-import { scryfallApi } from "@/lib/api/scryfall";
+import QuickAddSearch from "@/components/deck/QuickAddSearch";
 import { ScryfallCard } from "@/types/card";
 import { Deck, DeckCard } from "@/types/deck";
 import { useState } from "react";
@@ -15,28 +14,6 @@ export default function NewDeckPage() {
     colorIdentity: [],
   });
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<ScryfallCard[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-
-  const handleSearch = async () => {
-    if (searchQuery.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      const results = await scryfallApi.searchCommanderCards(searchQuery);
-      setSearchResults(results.data);
-    } catch (error) {
-      console.error("Search error:", error);
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
   const addCardToDeck = (card: ScryfallCard) => {
     // Check if card is already in deck
     if (deck.cards.some((dc) => dc.card.id === card.id)) {
@@ -44,7 +21,6 @@ export default function NewDeckPage() {
       return;
     }
 
-    // Determine category from type_line
     const getCategory = (typeLine: string): DeckCard["category"] => {
       const lower = typeLine.toLowerCase();
       if (lower.includes("creature")) return "creature";
@@ -61,6 +37,8 @@ export default function NewDeckPage() {
       card,
       quantity: 1,
       category: getCategory(card.type_line),
+      isLegal: card.legalities.commander === "legal", // Track legality
+      isGameChanger: card.game_changer === true, // ADD THIS
     };
 
     setDeck({
@@ -85,103 +63,59 @@ export default function NewDeckPage() {
             type="text"
             value={deck.name}
             onChange={(e) => setDeck({ ...deck, name: e.target.value })}
-            className="text-4xl font-bold bg-transparent border-b-2 border-gray-300 focus:border-blue-500 outline-none"
+            className="text-4xl font-bold bg-transparent border-b-2 border-gray-300 focus:border-blue-500 outline-none mb-4"
             placeholder="Deck Name"
           />
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 mb-4">
             Commander • {deck.cards.length}/99 cards
             {deck.commander && " • 1 Commander"}
           </p>
+
+          {/* Quick Add Search */}
+          <QuickAddSearch onAddCard={addCardToDeck} />
         </div>
 
-        <div className="grid grid-cols-3 gap-8">
-          {/* Left: Card Search */}
-          <div className="col-span-2">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-4">Add Cards</h2>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                placeholder="Search for cards... (Press Enter)"
-                className="w-full px-4 py-2 border rounded mb-4"
+        {/* Commander Section */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4">Commander</h2>
+          {!deck.commander ? (
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500">
+              Choose your commander from search results
+            </div>
+          ) : (
+            <div className="w-64">
+              <CardHoverPreview
+                card={deck.commander}
+                isLegal={deck.commander.legalities.commander === "legal"}
+                isGameChanger={deck.commander.game_changer}
+                onRemove={() => setDeck({ ...deck, commander: undefined })}
               />
-
-              <div className="text-gray-500 text-center py-8">
-                {isSearching ? (
-                  <div className="text-center py-8 text-gray-500">
-                    Searching...
-                  </div>
-                ) : searchResults.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-4 max-h-150 overflow-y-auto">
-                    <div className="grid grid-cols-2 gap-4 max-h-600px overflow-y-auto">
-                      {searchResults.map((card) => (
-                        <CardDisplay
-                          key={card.id}
-                          card={card}
-                          onClick={() => addCardToDeck(card)}
-                          className="border rounded p-2 hover:bg-gray-50 cursor-pointer"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : searchQuery ? (
-                  <div className="text-center py-8 text-gray-500">
-                    No results found
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    Search for cards to add to your deck
-                  </div>
-                )}
-              </div>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Right: Deck List */}
-          <div className="col-span-1">
-            <div className="bg-white rounded-lg shadow p-6 sticky top-8">
-              <h2 className="text-2xl font-bold mb-4">Deck List</h2>
-
-              {/* Commander Section */}
-              {!deck.commander ? (
-                <div className="border-2 border-dashed border-gray-300 rounded p-4 mb-4 text-center text-gray-500">
-                  Choose your commander
-                </div>
-              ) : (
-                <div className="mb-4">
-                  <h3 className="font-bold text-sm text-gray-600 mb-2">
-                    COMMANDER
-                  </h3>
-                  <div className="border rounded p-2">
-                    {deck.commander.name}
-                  </div>
-                </div>
-              )}
-
-              {/* Cards List */}
-              {/* Cards List */}
-              <div>
-                <h3 className="font-bold text-sm text-gray-600 mb-2">
-                  CARDS ({deck.cards.length})
-                </h3>
-                {deck.cards.length === 0 ? (
-                  <p className="text-gray-400 text-sm">No cards added yet</p>
-                ) : (
-                  <div className="grid grid-cols-3 gap-2 max-h-600px overflow-y-auto">
-                    {deck.cards.map((deckCard, index) => (
-                      <CardHoverPreview
-                        key={index}
-                        card={deckCard.card}
-                        onRemove={() => removeCard(index)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+        {/* Deck Grid */}
+        <div>
+          <h2 className="text-2xl font-bold mb-4">
+            Deck ({deck.cards.length} cards)
+          </h2>
+          {deck.cards.length === 0 ? (
+            <p className="text-gray-400">
+              No cards added yet. Use quick add above to start building!
+            </p>
+          ) : (
+            <div className="grid grid-cols-6 gap-4">
+              {deck.cards.map((deckCard, index) => (
+                <CardHoverPreview
+                  key={index}
+                  card={deckCard.card}
+                  isLegal={deckCard.isLegal}
+                  isGameChanger={deckCard.isGameChanger}
+                  onRemove={() => removeCard(index)}
+                />
+              ))}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

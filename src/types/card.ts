@@ -25,6 +25,8 @@ export interface ScryfallCard {
     usd_foil?: string;
   };
   card_faces?: ScryfallCard[];
+  game_changer?: boolean;
+  edhrec_rank?: number;
 }
 
 export interface ScryfallSearchResponse {

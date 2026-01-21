@@ -1,6 +1,7 @@
 "use client";
 
 import CardDisplay from "@/components/deck/CardDisplay";
+import CardHoverPreview from "@/components/deck/CardHoverPreview";
 import { scryfallApi } from "@/lib/api/scryfall";
 import { ScryfallCard } from "@/types/card";
 import { Deck, DeckCard } from "@/types/deck";
@@ -56,25 +57,6 @@ export default function NewDeckPage() {
       return "other";
     };
 
-    const getCardImages = (
-      card: ScryfallCard,
-    ): { front: string; back?: string } | null => {
-      // Single-faced card
-      if (card.image_uris) {
-        return { front: card.image_uris.normal };
-      }
-
-      // Double-faced card
-      if (card.card_faces && card.card_faces.length >= 2) {
-        return {
-          front: card.card_faces[0]?.image_uris?.normal || "",
-          back: card.card_faces[1]?.image_uris?.normal || "",
-        };
-      }
-
-      return null;
-    };
-
     const newCard: DeckCard = {
       card,
       quantity: 1,
@@ -86,6 +68,14 @@ export default function NewDeckPage() {
       cards: [...deck.cards, newCard],
     });
   };
+
+  const removeCard = (index: number) => {
+    setDeck({
+      ...deck,
+      cards: deck.cards.filter((_, i) => i !== index),
+    });
+  };
+
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
@@ -119,8 +109,6 @@ export default function NewDeckPage() {
               />
 
               <div className="text-gray-500 text-center py-8">
-                {/* Replace "Card search results will appear here" with: */}
-
                 {isSearching ? (
                   <div className="text-center py-8 text-gray-500">
                     Searching...
@@ -173,6 +161,7 @@ export default function NewDeckPage() {
               )}
 
               {/* Cards List */}
+              {/* Cards List */}
               <div>
                 <h3 className="font-bold text-sm text-gray-600 mb-2">
                   CARDS ({deck.cards.length})
@@ -180,11 +169,13 @@ export default function NewDeckPage() {
                 {deck.cards.length === 0 ? (
                   <p className="text-gray-400 text-sm">No cards added yet</p>
                 ) : (
-                  <div className="space-y-1">
+                  <div className="grid grid-cols-3 gap-2 max-h-600px overflow-y-auto">
                     {deck.cards.map((deckCard, index) => (
-                      <div key={index} className="text-sm">
-                        {deckCard.card.name}
-                      </div>
+                      <CardHoverPreview
+                        key={index}
+                        card={deckCard.card}
+                        onRemove={() => removeCard(index)}
+                      />
                     ))}
                   </div>
                 )}

@@ -78,16 +78,16 @@ describe("scryfallApi", () => {
       data: [
         {
           id: "test-id",
-          name: "Sol Ring",
+          name: "Black Lotus",
           type_line: "Artifact",
-          mana_cost: "{1}",
+          mana_cost: "{0}",
           cmc: 1,
           color_identity: [],
-          legalities: { commander: "legal" },
+          legalities: { commander: "banned" },
           set: "lea",
           set_name: "Limited Edition Alpha",
-          rarity: "uncommon",
-          prices: { usd: "1.50" },
+          rarity: "rare",
+          prices: { usd: "491.06" },
         },
       ],
     };
@@ -97,13 +97,13 @@ describe("scryfallApi", () => {
       json: async () => mockResponse,
     });
 
-    const result = await scryfallApi.searchCommanderCards("sol ring");
+    const result = await scryfallApi.searchCommanderCards("black lotus");
 
     expect(result.data).toHaveLength(1);
-    expect(result.data[0].name).toBe("Sol Ring");
+    expect(result.data[0].name).toBe("Black Lotus");
     // Check that it contains both parts (spaces can be + or %20)
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/sol.*ring.*legal.*commander/),
+      expect.stringMatching(/black.*lotus.*legal.*commander/),
     );
   });
 

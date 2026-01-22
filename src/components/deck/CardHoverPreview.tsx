@@ -40,13 +40,13 @@ export default function CardHoverPreview({
 
         {/* Illegal card warning */}
         {!isLegal && (
-          <div className="absolute bottom-1 left-1 bg-red-500 text-white text-xs px-1 rounded flex items-center gap-0.5">
+          <div data-testid="card-isLegal-status" className="absolute bottom-1 left-1 bg-red-500 text-white text-xs px-1 rounded flex items-center gap-0.5">
             <AlertTriangle className="w-3 h-3" />
             <span>Illegal</span>
           </div>
         )}
 
-        {/* Remove button - ADD THIS */}
+        {/* Remove button */}
         {onRemove && (
           <button
             onClick={(e) => {

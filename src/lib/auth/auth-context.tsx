@@ -24,16 +24,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // useEffect(() => {
+  //   // Only check user on protected routes
+  //   if (typeof window !== "undefined") {
+  //     const path = window.location.pathname;
+  //     // Don't check auth on public pages
+  //     if (path === "/login" || path === "/signup" || path === "/") {
+  //       setLoading(false);
+  //       return;
+  //     }
+  //   }
+  //   checkUser();
+  // }, []);
   useEffect(() => {
-    // Only check user on protected routes
-    if (typeof window !== "undefined") {
-      const path = window.location.pathname;
-      // Don't check auth on public pages
-      if (path === "/login" || path === "/signup" || path === "/") {
-        setLoading(false);
-        return;
-      }
-    }
     checkUser();
   }, []);
 

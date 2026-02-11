@@ -6,6 +6,17 @@ import { ScryfallCard } from "@/types/card";
 import { Deck, DeckCard } from "@/types/deck";
 import { useState } from "react";
 
+export const getCategory = (typeLine: string): DeckCard["category"] => {
+  const lower = typeLine.toLowerCase();
+  if (/\bcreature\b/.test(lower)) return "creature";
+  if (/\binstant\b/.test(lower)) return "instant";
+  if (/\bsorcery\b/.test(lower)) return "sorcery";
+  if (/\bartifact\b/.test(lower)) return "artifact";
+  if (/\benchantment\b/.test(lower)) return "enchantment";
+  if (/\bplaneswalker\b/.test(lower)) return "planeswalker";
+  if (/\bland\b/.test(lower)) return "land";
+  return "other";
+};
 export default function NewDeckPage() {
   const [deck, setDeck] = useState<Deck>({
     name: "Untitled Deck",
@@ -20,18 +31,6 @@ export default function NewDeckPage() {
       alert("Card already in deck!");
       return;
     }
-
-    const getCategory = (typeLine: string): DeckCard["category"] => {
-      const lower = typeLine.toLowerCase();
-      if (lower.includes("creature")) return "creature";
-      if (lower.includes("instant")) return "instant";
-      if (lower.includes("sorcery")) return "sorcery";
-      if (lower.includes("artifact")) return "artifact";
-      if (lower.includes("enchantment")) return "enchantment";
-      if (lower.includes("planeswalker")) return "planeswalker";
-      if (lower.includes("land")) return "land";
-      return "other";
-    };
 
     const newCard: DeckCard = {
       card,
@@ -88,7 +87,7 @@ export default function NewDeckPage() {
                 card={deck.commander}
                 isLegal={deck.commander.legalities.commander === "legal"}
                 isGameChanger={deck.commander.game_changer}
-                onRemove={() => setDeck({ ...deck, commander: undefined })}
+                onRemove={() => setDeck({ ...deck, commander: undefined })} // test this line once commander is working
               />
             </div>
           )}

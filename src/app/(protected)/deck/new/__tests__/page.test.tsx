@@ -2,7 +2,46 @@ import { ScryfallCard } from "@/types/card";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import NewDeckPage from "../page";
+import NewDeckPage, { getCategory } from "../page";
+
+describe("getCategory", () => {
+  it("categorizes creatures correctly", () => {
+    expect(getCategory("Creature — Human")).toBe("creature");
+  });
+
+  it("categorizes instants correctly", () => {
+    expect(getCategory("Instant")).toBe("instant");
+  });
+
+  it("categorizes sorceries correctly", () => {
+    expect(getCategory("Sorcery")).toBe("sorcery");
+  });
+
+  it("categorizes artifacts correctly", () => {
+    expect(getCategory("Artifact")).toBe("artifact");
+  });
+
+  it("categorizes enchantments correctly", () => {
+    expect(getCategory("Enchantment — Aura")).toBe("enchantment");
+  });
+
+  it("categorizes planeswalkers correctly", () => {
+    expect(getCategory("Legendary Planeswalker — Jace")).toBe("planeswalker");
+  });
+
+  it("categorizes lands correctly", () => {
+    expect(getCategory("Land — Island")).toBe("land");
+  });
+
+  it("categorizes unknown types as other", () => {
+    expect(getCategory("Tribal")).toBe("other");
+  });
+
+  it("is case insensitive", () => {
+    expect(getCategory("INSTANT")).toBe("instant");
+    expect(getCategory("InStAnT")).toBe("instant");
+  });
+});
 
 // Mock the child components
 jest.mock("@/components/deck/CardHoverPreview", () => {
@@ -69,27 +108,6 @@ const mockCard: ScryfallCard = {
   game_changer: false,
   prices: { usd: "500" },
 };
-
-// const mockCreatureCard: ScryfallCard = {
-//   ...mockCard,
-//   id: "card-2",
-//   name: "Grizzly Bears",
-//   type_line: "Creature — Bear",
-//   cmc: 2,
-//   mana_cost: "{1}{G}",
-//   color_identity: ["G"],
-// };
-
-// const mockCommanderCard: ScryfallCard = {
-//   ...mockCard,
-//   id: "card-3",
-//   name: "Commander Card",
-//   type_line: "Legendary Creature — Human Wizard",
-//   cmc: 4,
-//   mana_cost: "{2}{U}{R}",
-//   color_identity: ["U", "R"],
-//   game_changer: true,
-// };
 
 // Mock alert
 global.alert = jest.fn();
@@ -318,5 +336,44 @@ describe("NewDeckPage", () => {
       expect(screen.getByText(/Deck \(0 cards\)/)).toBeInTheDocument();
       expect(screen.getByTestId("quick-add-search")).toBeInTheDocument();
     });
+  });
+});
+
+describe("getCategory", () => {
+  it("categorizes creatures correctly", () => {
+    expect(getCategory("Creature — Humans")).toBe("creature");
+  });
+
+  it("categorizes instants correctly", () => {
+    expect(getCategory("Instant")).toBe("instant");
+  });
+
+  it("categorizes sorceries correctly", () => {
+    expect(getCategory("Sorcery")).toBe("sorcery");
+  });
+
+  it("categorizes artifacts correctly", () => {
+    expect(getCategory("Artifact")).toBe("artifact");
+  });
+
+  it("categorizes enchantments correctly", () => {
+    expect(getCategory("Enchantment — Aura")).toBe("enchantment");
+  });
+
+  it("categorizes planeswalkers correctly", () => {
+    expect(getCategory("Legendary Planeswalker — Jace")).toBe("planeswalker");
+  });
+
+  it("categorizes lands correctly", () => {
+    expect(getCategory("Land — Island")).toBe("land");
+  });
+
+  it("categorizes unknown types as other", () => {
+    expect(getCategory("Tribal")).toBe("other");
+  });
+
+  it("is case insensitive", () => {
+    expect(getCategory("INSTANT")).toBe("instant");
+    expect(getCategory("InStAnT")).toBe("instant");
   });
 });

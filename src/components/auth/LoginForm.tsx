@@ -41,6 +41,7 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-md">
       <form
+        data-testid="login-form"
         onSubmit={handleSubmit}
         className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
       >

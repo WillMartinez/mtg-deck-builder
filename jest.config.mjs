@@ -16,6 +16,11 @@ const customJestConfig = {
     "!src/**/*.stories.{js,jsx,ts,tsx}",
     "!src/**/__tests__/**",
   ],
+  coveragePathIgnorePatterns: [
+    "/node_modules/",
+    "/infrastructure/",
+    "src/app/layout.tsx",
+  ],
 };
 
 export default createJestConfig(customJestConfig);

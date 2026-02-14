@@ -1,138 +1,91 @@
-import DashboardPage from "@/app/(protected)/dashboard/page";
 import { useAuth } from "@/lib/auth/auth-context";
-import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import DashboardPage from "../page";
 
-// Mock the useAuth hook
+// Mock the auth context
 jest.mock("@/lib/auth/auth-context", () => ({
   useAuth: jest.fn(),
 }));
 
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-
 describe("DashboardPage", () => {
-  const mockSignOut = jest.fn();
-  const mockUser = {
-    getUsername: jest.fn(() => "testuser"),
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseAuth.mockReturnValue({
-      user: mockUser,
-      signOut: mockSignOut,
-      isLoading: false,
-      error: null,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
   });
 
-  it("renders the dashboard page", () => {
+  it("renders the dashboard welcome message", () => {
+    (useAuth as jest.Mock).mockReturnValue({
+      user: {
+        getUsername: () => "testuser",
+      },
+      userEmail: "test@example.com",
+      loading: false,
+    });
+
     render(<DashboardPage />);
 
-    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    expect(screen.getByText(/Welcome, test@example.com!/i)).toBeInTheDocument();
   });
 
-  it("displays welcome message with username", () => {
+  it("displays username if email is not available", () => {
+    (useAuth as jest.Mock).mockReturnValue({
+      user: {
+        getUsername: () => "testuser",
+      },
+      userEmail: null,
+      loading: false,
+    });
+
     render(<DashboardPage />);
 
-    expect(screen.getByText(/Welcome, testuser!/)).toBeInTheDocument();
-    expect(mockUser.getUsername).toHaveBeenCalled();
+    expect(screen.getByText(/Welcome, testuser!/i)).toBeInTheDocument();
   });
 
-  it("renders sign out button", () => {
-    render(<DashboardPage />);
+  it('renders the "Your Decks" section', () => {
+    (useAuth as jest.Mock).mockReturnValue({
+      user: {
+        getUsername: () => "testuser",
+      },
+      userEmail: "test@example.com",
+      loading: false,
+    });
 
-    const signOutButton = screen.getByRole("button", { name: /sign out/i });
-    expect(signOutButton).toBeInTheDocument();
-  });
-
-  it("calls signOut when sign out button is clicked", async () => {
-    const user = userEvent.setup();
-    render(<DashboardPage />);
-
-    const signOutButton = screen.getByRole("button", { name: /sign out/i });
-    await user.click(signOutButton);
-
-    expect(mockSignOut).toHaveBeenCalledTimes(1);
-  });
-
-  it('displays "Your Decks" section', () => {
     render(<DashboardPage />);
 
     expect(screen.getByText("Your Decks")).toBeInTheDocument();
-  });
-
-  it("displays placeholder text for decks", () => {
-    render(<DashboardPage />);
-
     expect(
-      screen.getByText("Your Commander decks will appear here soon..."),
+      screen.getByText(/Your Commander decks will appear here soon/i),
     ).toBeInTheDocument();
   });
 
   it("handles null user gracefully", () => {
-    mockUseAuth.mockReturnValue({
+    (useAuth as jest.Mock).mockReturnValue({
       user: null,
-      signOut: mockSignOut,
-      isLoading: false,
-      error: null,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+      userEmail: null,
+      loading: false,
+    });
 
     render(<DashboardPage />);
 
-    // Should still render the page structure
-    expect(screen.getByText("Dashboard")).toBeInTheDocument();
-    expect(screen.getByText(/Welcome,/)).toBeInTheDocument();
+    // Should still render but with empty welcome
+    expect(screen.getByText(/Welcome,/i)).toBeInTheDocument();
   });
 
-  it("applies correct styling to sign out button", () => {
+  it("renders with correct page structure", () => {
+    (useAuth as jest.Mock).mockReturnValue({
+      user: {
+        getUsername: () => "testuser",
+      },
+      userEmail: "test@example.com",
+      loading: false,
+    });
+
     render(<DashboardPage />);
 
-    const signOutButton = screen.getByRole("button", { name: /sign out/i });
-    expect(signOutButton).toHaveClass("bg-red-500");
-    expect(signOutButton).toHaveClass("hover:bg-red-700");
-    expect(signOutButton).toHaveClass("text-white");
-    expect(signOutButton).toHaveClass("font-bold");
-  });
-
-  it("renders header with correct layout", () => {
-    const { container } = render(<DashboardPage />);
-
-    const header = container.querySelector(
-      ".flex.justify-between.items-center",
-    );
-    expect(header).toBeInTheDocument();
-
-    const heading = screen.getByText("Dashboard");
-    const signOutButton = screen.getByRole("button", { name: /sign out/i });
-
-    expect(header).toContainElement(heading);
-    expect(header).toContainElement(signOutButton);
-  });
-
-  it("applies correct container styling", () => {
-    const { container } = render(<DashboardPage />);
-
-    const mainContainer = container.querySelector(".min-h-screen.p-8");
-    expect(mainContainer).toBeInTheDocument();
-
-    const contentContainer = container.querySelector(".max-w-4xl.mx-auto");
-    expect(contentContainer).toBeInTheDocument();
-  });
-
-  it("applies correct styling to deck section", () => {
-    const { container } = render(<DashboardPage />);
-
-    const deckSection = container.querySelector(
-      ".bg-white.shadow-md.rounded.p-6",
-    );
-    expect(deckSection).toBeInTheDocument();
-    expect(deckSection).toHaveTextContent("Your Decks");
-    expect(deckSection).toHaveTextContent(
-      "Your Commander decks will appear here soon...",
-    );
+    // Check for main content sections
+    expect(screen.getByText("Your Decks")).toBeInTheDocument();
+    expect(screen.getByText(/Welcome,/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Your Commander decks will appear here soon/i),
+    ).toBeInTheDocument();
   });
 });

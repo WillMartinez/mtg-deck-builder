@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function Header() {
-  const { user, signOut } = useAuth();
+  const { user, userEmail, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -33,6 +33,12 @@ export default function Header() {
             >
               New Deck
             </Link>
+            <Link
+              href="/profile"
+              className="hover:text-blue-300 transition-colors"
+            >
+              Profile
+            </Link>
 
             {/* Format Selector (placeholder for future) */}
             <div className="relative">
@@ -47,7 +53,7 @@ export default function Header() {
             {/* User Menu */}
             <div className="flex items-center space-x-4">
               <span className="text-sm text-blue-200">
-                {user?.getUsername()}
+                {userEmail || user?.getUsername()}
               </span>
               <button
                 onClick={signOut}
@@ -88,9 +94,16 @@ export default function Header() {
             >
               New Deck
             </Link>
+            <Link
+              href="/profile"
+              className="block hover:text-blue-300 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Profile
+            </Link>
             <div className="pt-4 border-t border-blue-800">
               <p className="text-sm text-blue-200 mb-2">
-                {user?.getUsername()}
+                {userEmail || user?.getUsername()}
               </p>
               <button
                 onClick={signOut}

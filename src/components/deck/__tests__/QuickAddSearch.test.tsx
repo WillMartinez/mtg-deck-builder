@@ -246,7 +246,7 @@ describe("QuickAddSearch", () => {
       const searchCardsMock = jest.fn((query) => {
         const cardName = query.replace('!"', "").replace('"', "");
         return Promise.resolve({
-          object: "list",
+          object: "list" as const,
           data: [
             {
               ...mockLegalCard,

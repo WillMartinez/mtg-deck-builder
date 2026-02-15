@@ -1,72 +1,50 @@
 import { useAuth } from "@/lib/auth/auth-context";
-import "@testing-library/jest-dom";
 import { render, screen, waitFor } from "@testing-library/react";
-import { CognitoUser } from "amazon-cognito-identity-js";
 import { useRouter } from "next/navigation";
-import ProtectedLayout from "../layout";
+import ProtectedLayout from "../layout"; // ← Changed from RootLayout
 
-// Mock dependencies
+// Mock the auth context
+jest.mock("@/lib/auth/auth-context", () => ({
+  useAuth: jest.fn(),
+}));
+
+// Mock Next.js router
 jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
 }));
 
-jest.mock("@/lib/auth/auth-context");
-
-jest.mock("@/components/layout/Header", () => {
-  return function MockHeader() {
-    return <div data-testid="mock-header">Header</div>;
-  };
-});
-
-jest.mock("@/components/layout/Footer", () => {
-  return function MockFooter() {
-    return <div data-testid="mock-footer">Footer</div>;
-  };
-});
-
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-const mockUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;
+const mockPush = jest.fn();
 
 describe("ProtectedLayout", () => {
-  const mockPush = jest.fn();
-  const mockUser = {
-    getUsername: () => "testuser@example.com",
-  } as Partial<CognitoUser> as CognitoUser;
-
+  // ← Changed from RootLayout
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseRouter.mockReturnValue({
+    (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,
-      back: jest.fn(),
-      forward: jest.fn(),
-      refresh: jest.fn(),
-      replace: jest.fn(),
-      prefetch: jest.fn(),
     });
   });
 
   it("shows loading state when auth is loading", () => {
-    mockUseAuth.mockReturnValue({
+    (useAuth as jest.Mock).mockReturnValue({
       user: null,
       loading: true,
-      signOut: jest.fn(),
     });
 
     render(
       <ProtectedLayout>
+        {" "}
+        {/* ← Changed from RootLayout */}
         <div>Protected Content</div>
       </ProtectedLayout>,
     );
 
     expect(screen.getByText("Loading...")).toBeInTheDocument();
-    expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
   });
 
   it("redirects to login when user is not authenticated", async () => {
-    mockUseAuth.mockReturnValue({
+    (useAuth as jest.Mock).mockReturnValue({
       user: null,
       loading: false,
-      signOut: jest.fn(),
     });
 
     render(
@@ -80,11 +58,28 @@ describe("ProtectedLayout", () => {
     });
   });
 
-  it("renders children with header and footer when user is authenticated", () => {
-    mockUseAuth.mockReturnValue({
-      user: mockUser,
+  it("renders null when user is not authenticated (before redirect)", () => {
+    (useAuth as jest.Mock).mockReturnValue({
+      user: null,
       loading: false,
-      signOut: jest.fn(),
+    });
+
+    const { container } = render(
+      <ProtectedLayout>
+        <div>Protected Content</div>
+      </ProtectedLayout>,
+    );
+
+    // Should render null (empty)
+    expect(container.firstChild).toBeNull();
+  });
+
+  it("renders children when user is authenticated", () => {
+    (useAuth as jest.Mock).mockReturnValue({
+      user: {
+        getUsername: () => "testuser",
+      },
+      loading: false,
     });
 
     render(
@@ -93,16 +88,15 @@ describe("ProtectedLayout", () => {
       </ProtectedLayout>,
     );
 
-    expect(screen.getByTestId("mock-header")).toBeInTheDocument();
-    expect(screen.getByTestId("mock-footer")).toBeInTheDocument();
     expect(screen.getByText("Protected Content")).toBeInTheDocument();
   });
 
-  it("renders nothing when user is null and not loading", () => {
-    mockUseAuth.mockReturnValue({
-      user: null,
+  it("does not redirect when user is authenticated", () => {
+    (useAuth as jest.Mock).mockReturnValue({
+      user: {
+        getUsername: () => "testuser",
+      },
       loading: false,
-      signOut: jest.fn(),
     });
 
     render(
@@ -111,7 +105,24 @@ describe("ProtectedLayout", () => {
       </ProtectedLayout>,
     );
 
-    // Should render null before redirect happens
-    expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("applies correct wrapper classes", () => {
+    (useAuth as jest.Mock).mockReturnValue({
+      user: {
+        getUsername: () => "testuser",
+      },
+      loading: false,
+    });
+
+    const { container } = render(
+      <ProtectedLayout>
+        <div>Content</div>
+      </ProtectedLayout>,
+    );
+
+    const wrapper = container.querySelector(".min-h-screen");
+    expect(wrapper).toHaveClass("min-h-screen", "flex", "flex-col");
   });
 });

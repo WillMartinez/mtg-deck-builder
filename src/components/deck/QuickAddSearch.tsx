@@ -2,6 +2,7 @@
 
 import { scryfallApi } from "@/lib/api/scryfall";
 import { ScryfallCard } from "@/types/card";
+import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -16,89 +17,86 @@ interface CardSuggestion {
   isGameChanger?: boolean;
 }
 
+async function fetchCardSuggestions(query: string): Promise<CardSuggestion[]> {
+  const names = await scryfallApi.autocomplete(query);
+  const results = await Promise.all(
+    names.slice(0, 10).map(async (name) => {
+      try {
+        const result = await scryfallApi.searchCards(`!"${name}"`);
+        if (result.data.length > 0) {
+          const card = result.data[0];
+          return {
+            name,
+            card,
+            isLegal: card.legalities.commander === "legal",
+            isGameChanger: card.game_changer === true,
+          };
+        }
+      } catch {
+        // assume legal if card lookup fails
+      }
+      return { name, isLegal: true, isGameChanger: false };
+    }),
+  );
+  return results.filter(Boolean) as CardSuggestion[];
+}
+
 export default function QuickAddSearch({ onAddCard }: QuickAddSearchProps) {
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<CardSuggestion[]>([]);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch autocomplete suggestions with legality
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (query.length < 2) {
-        setSuggestions([]);
-        return;
-      }
-
-      try {
-        // Get card names
-        const names = await scryfallApi.autocomplete(query);
-
-        // Fetch actual cards to check legality (limit to first 10 for performance)
-        const cardPromises = names.slice(0, 10).map(async (name) => {
-          try {
-            const result = await scryfallApi.searchCards(`!"${name}"`);
-            if (result.data.length > 0) {
-              const card = result.data[0];
-              return {
-                name,
-                card,
-                isLegal: card.legalities.commander === "legal",
-              };
-            }
-          } catch (error) {
-            console.error(`Error fetching ${name}:`, error);
-          }
-          return { name, isLegal: true }; // Assume legal if we can't check
-        });
-
-        const results = await Promise.all(cardPromises);
-        const processedResults = results.filter(Boolean).map((r) => ({
-          ...r!,
-          isGameChanger: r!.card?.game_changer === true,
-        }));
-        setSuggestions(processedResults as CardSuggestion[]);
-        setSelectedIndex(-1);
-      } catch (error) {
-        console.error("Autocomplete error:", error);
-        setSuggestions([]);
-      }
-    };
-
-    const debounce = setTimeout(fetchSuggestions, 300);
-    return () => clearTimeout(debounce);
+    if (query.length < 2) {
+      setDebouncedQuery("");
+      return;
+    }
+    setShowSuggestions(true);
+    const timer = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(timer);
   }, [query]);
 
-  // Add card
+  const { data: suggestions = [], isFetching } = useQuery({
+    queryKey: ["card-suggestions", debouncedQuery],
+    queryFn: () => fetchCardSuggestions(debouncedQuery),
+    enabled: debouncedQuery.length >= 2,
+  });
+
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [suggestions]);
+
   const addCard = async (suggestion: CardSuggestion) => {
     if (suggestion.card) {
       onAddCard(suggestion.card);
       setQuery("");
-      setSuggestions([]);
+      setDebouncedQuery("");
+      setShowSuggestions(false);
       inputRef.current?.focus();
     } else {
-      // Fallback: fetch the card
-      setIsLoading(true);
+      setIsAdding(true);
       try {
         const result = await scryfallApi.searchCards(`!"${suggestion.name}"`);
         if (result.data.length > 0) {
           onAddCard(result.data[0]);
           setQuery("");
-          setSuggestions([]);
+          setDebouncedQuery("");
+          setShowSuggestions(false);
           inputRef.current?.focus();
         }
       } catch (error) {
         console.error("Error adding card:", error);
       } finally {
-        setIsLoading(false);
+        setIsAdding(false);
       }
     }
   };
 
-  // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (suggestions.length === 0) return;
+    if (!showSuggestions || suggestions.length === 0) return;
 
     switch (e.key) {
       case "ArrowDown":
@@ -120,11 +118,13 @@ export default function QuickAddSearch({ onAddCard }: QuickAddSearchProps) {
         }
         break;
       case "Escape":
-        setSuggestions([]);
+        setShowSuggestions(false);
         setSelectedIndex(-1);
         break;
     }
   };
+
+  const dropdownVisible = showSuggestions && suggestions.length > 0 && debouncedQuery.length >= 2;
 
   return (
     <div className="relative">
@@ -136,11 +136,10 @@ export default function QuickAddSearch({ onAddCard }: QuickAddSearchProps) {
         onKeyDown={handleKeyDown}
         placeholder="Quick add card... (start typing)"
         className="w-1/4 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        disabled={isLoading}
+        disabled={isAdding}
       />
 
-      {/* Autocomplete dropdown */}
-      {suggestions.length > 0 && (
+      {dropdownVisible && (
         <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {suggestions.map((suggestion, index) => (
             <div
@@ -177,9 +176,9 @@ export default function QuickAddSearch({ onAddCard }: QuickAddSearchProps) {
         </div>
       )}
 
-      {isLoading && (
+      {(isFetching || isAdding) && (
         <div className="absolute right-3 top-2.5 text-gray-400 text-sm">
-          Adding...
+          {isAdding ? "Adding..." : "Loading..."}
         </div>
       )}
     </div>

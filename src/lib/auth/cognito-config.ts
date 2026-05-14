@@ -1,5 +1,5 @@
 export const cognitoConfig = {
-  region: "us-east-1",
-  userPoolId: "us-east-1_n2eX5040M",
-  userPoolWebClientId: "7idbggcdd1dmb0lagugkge8c9l",
+  region: process.env.NEXT_PUBLIC_COGNITO_REGION!,
+  userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID!,
+  userPoolWebClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
 };

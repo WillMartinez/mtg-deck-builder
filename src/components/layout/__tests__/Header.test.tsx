@@ -50,14 +50,14 @@ describe("Header", () => {
       render(<Header />);
 
       expect(screen.getByText("🎴")).toBeInTheDocument();
-      expect(screen.getByText("MTG Deck Builder")).toBeInTheDocument();
+      expect(screen.getByText("Deck Brew")).toBeInTheDocument();
     });
 
     it("logo links to dashboard", () => {
       render(<Header />);
 
       const logoLink = screen.getByRole("link", {
-        name: /🎴 MTG Deck Builder/i,
+        name: /🎴 Deck Brew/i,
       });
       expect(logoLink).toHaveAttribute("href", "/dashboard");
     });

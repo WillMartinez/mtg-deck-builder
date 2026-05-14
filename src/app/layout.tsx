@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MTG Deck Builder",
+  title: "Deck Brew",
   description: "Build and manage your Magic: The Gathering decks",
 };
 

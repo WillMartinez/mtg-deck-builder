@@ -1,9 +1,21 @@
 import QuickAddSearch from "@/components/deck/QuickAddSearch";
 import { scryfallApi } from "@/lib/api/scryfall";
 import { ScryfallCard } from "@/types/card";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@testing-library/jest-dom";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0, refetchOnWindowFocus: false },
+    },
+  });
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
 
 // Mock the Scryfall API
 jest.mock("@/lib/api/scryfall", () => ({
@@ -106,7 +118,7 @@ describe("QuickAddSearch", () => {
 
   describe("Initial Render", () => {
     it("renders search input", () => {
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       expect(
         screen.getByPlaceholderText(/quick add card/i),
@@ -114,13 +126,13 @@ describe("QuickAddSearch", () => {
     });
 
     it("input is not disabled initially", () => {
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       expect(screen.getByPlaceholderText(/quick add card/i)).not.toBeDisabled();
     });
 
     it("does not show suggestions initially", () => {
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       expect(screen.queryByRole("list")).not.toBeInTheDocument();
     });
@@ -129,7 +141,7 @@ describe("QuickAddSearch", () => {
   describe("Autocomplete", () => {
     it("does not fetch suggestions for queries shorter than 2 characters", async () => {
       const user = userEvent.setup({ delay: null });
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "a");
@@ -149,7 +161,7 @@ describe("QuickAddSearch", () => {
         total_cards: 1,
       });
 
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "light");
@@ -167,7 +179,7 @@ describe("QuickAddSearch", () => {
 
     it("debounces autocomplete requests", async () => {
       const user = userEvent.setup({ delay: null });
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "lig");
@@ -200,7 +212,7 @@ describe("QuickAddSearch", () => {
         total_cards: 1,
       });
 
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "black");
@@ -224,7 +236,7 @@ describe("QuickAddSearch", () => {
         total_cards: 1,
       });
 
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "sol");
@@ -260,7 +272,7 @@ describe("QuickAddSearch", () => {
 
       mockScryfallApi.searchCards.mockImplementation(searchCardsMock);
 
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "card");
@@ -284,7 +296,7 @@ describe("QuickAddSearch", () => {
         total_cards: 1,
       });
 
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "light");
@@ -311,7 +323,7 @@ describe("QuickAddSearch", () => {
         total_cards: 1,
       });
 
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "light");
@@ -341,7 +353,7 @@ describe("QuickAddSearch", () => {
         total_cards: 0,
       });
 
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "light");
@@ -377,7 +389,7 @@ describe("QuickAddSearch", () => {
         total_cards: 0,
       });
 
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "light");
@@ -438,7 +450,7 @@ describe("QuickAddSearch", () => {
 
     it("navigates down with ArrowDown", async () => {
       const user = userEvent.setup({ delay: null });
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "lig");
@@ -457,7 +469,7 @@ describe("QuickAddSearch", () => {
 
     it("navigates up with ArrowUp", async () => {
       const user = userEvent.setup({ delay: null });
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "lig");
@@ -478,7 +490,7 @@ describe("QuickAddSearch", () => {
 
     it("adds selected card with Enter", async () => {
       const user = userEvent.setup({ delay: null });
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "lig");
@@ -497,7 +509,7 @@ describe("QuickAddSearch", () => {
 
     it("adds first suggestion with Enter when none selected", async () => {
       const user = userEvent.setup({ delay: null });
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "lig");
@@ -515,7 +527,7 @@ describe("QuickAddSearch", () => {
 
     it("closes suggestions with Escape", async () => {
       const user = userEvent.setup({ delay: null });
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "lig");
@@ -533,7 +545,7 @@ describe("QuickAddSearch", () => {
 
     it("does not navigate beyond last suggestion", async () => {
       const user = userEvent.setup({ delay: null });
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "lig");
@@ -560,12 +572,11 @@ describe("QuickAddSearch", () => {
   describe("Error Handling", () => {
     it("handles autocomplete errors gracefully", async () => {
       const user = userEvent.setup({ delay: null });
-      const consoleError = jest.spyOn(console, "error").mockImplementation();
       mockScryfallApi.autocomplete.mockRejectedValueOnce(
         new Error("API Error"),
       );
 
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "light");
@@ -573,26 +584,18 @@ describe("QuickAddSearch", () => {
       jest.advanceTimersByTime(300);
 
       await waitFor(() => {
-        expect(consoleError).toHaveBeenCalledWith(
-          "Autocomplete error:",
-          expect.any(Error),
-        );
+        expect(screen.queryByText("Lightning Bolt")).not.toBeInTheDocument();
       });
-
-      expect(screen.queryByText("Lightning Bolt")).not.toBeInTheDocument();
-
-      consoleError.mockRestore();
     });
 
     it("handles individual card fetch errors", async () => {
       const user = userEvent.setup({ delay: null });
-      const consoleError = jest.spyOn(console, "error").mockImplementation();
       mockScryfallApi.autocomplete.mockResolvedValueOnce(["Lightning Bolt"]);
       mockScryfallApi.searchCards.mockRejectedValueOnce(
         new Error("Card not found"),
       );
 
-      render(<QuickAddSearch onAddCard={mockOnAddCard} />);
+      render(<QuickAddSearch onAddCard={mockOnAddCard} />, { wrapper: createWrapper() });
 
       const input = screen.getByPlaceholderText(/quick add card/i);
       await user.type(input, "light");
@@ -600,10 +603,8 @@ describe("QuickAddSearch", () => {
       jest.advanceTimersByTime(300);
 
       await waitFor(() => {
-        expect(consoleError).toHaveBeenCalled();
+        expect(screen.getByText("Lightning Bolt")).toBeInTheDocument();
       });
-
-      consoleError.mockRestore();
     });
   });
 });

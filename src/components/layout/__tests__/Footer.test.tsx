@@ -6,9 +6,7 @@ describe("Footer", () => {
     render(<Footer />);
 
     const currentYear = new Date().getFullYear();
-    expect(
-      screen.getByText(`© ${currentYear} MTG Deck Builder`),
-    ).toBeInTheDocument();
+    expect(screen.getByText(`© ${currentYear} Deck Brew`)).toBeInTheDocument();
   });
 
   it("renders Scryfall attribution text", () => {

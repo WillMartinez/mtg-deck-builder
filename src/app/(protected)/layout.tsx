@@ -1,5 +1,6 @@
 "use client";
 import { useAuth } from "@/lib/auth/auth-context";
+import { DeckProvider } from "@/lib/deck/deck-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -30,8 +31,10 @@ export default function ProtectedLayout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-1">{children}</main>
-    </div>
+    <DeckProvider>
+      <div className="min-h-screen flex flex-col">
+        <main className="flex-1">{children}</main>
+      </div>
+    </DeckProvider>
   );
 }

@@ -30,7 +30,7 @@ export const handler = async (
 
   // route based on method + resource
   if (method === "GET" && resource === "/decks") {
-    // TODO: list all decks for user
+    // list all decks for user
     const results = await docClient.send(
       new QueryCommand({
         TableName: process.env.DECKS_TABLE,
@@ -45,7 +45,7 @@ export const handler = async (
       body: JSON.stringify(results.Items),
     };
   } else if (method === "GET" && resource === "/decks/{deckId}") {
-    // TODO: get a specific deck use deckID
+    // get a specific deck use deckID
     const results = await docClient.send(
       new GetCommand({
         TableName: process.env.DECKS_TABLE,
@@ -60,7 +60,7 @@ export const handler = async (
       body: JSON.stringify(results.Item),
     };
   } else if (method === "POST" && resource === "/decks") {
-    // TODO: create a new deck
+    // create a new deck
     const newDeck = {
       userId,
       deckId: crypto.randomUUID(),
@@ -81,7 +81,7 @@ export const handler = async (
       body: JSON.stringify(newDeck),
     };
   } else if (method === "PUT" && resource === "/decks/{deckId}") {
-    // TODO: update a deck
+    // update a deck
     const body = JSON.parse(event.body!);
 
     const results = await docClient.send(
@@ -108,7 +108,7 @@ export const handler = async (
       body: JSON.stringify(results.Attributes),
     };
   } else if (method === "DELETE" && resource === "/decks/{deckId}") {
-    // TODO: delete a deck with deckId
+    //delete a deck with deckId
     await docClient.send(
       new DeleteCommand({
         TableName: process.env.DECKS_TABLE,
@@ -123,7 +123,7 @@ export const handler = async (
       body: "",
     };
   } else if (method === "PUT" && resource === "/decks/{deckId}/cards") {
-    // TODO: add and update a card
+    // add and update a card
     const body = JSON.parse(event.body!);
 
     const results = await docClient.send(
@@ -151,7 +151,7 @@ export const handler = async (
     method === "DELETE" &&
     resource === "/decks/{deckId}/cards/{scryfallId}"
   ) {
-    // TODO: Remove a card from the deck
+    // Remove a card from the deck
 
     // get th deck using the deckId
     const results = await docClient.send(
